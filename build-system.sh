@@ -113,5 +113,26 @@ fc-cache -fv
 
 echo "✅ Iosevka Nerd Font instalada correctamente."
 
+
+# Instalar Zsh y establecerla como shell por defecto
+echo "🌀 Instalando Zsh..."
+sudo xbps-install -Sy zsh
+
+# Establecer Zsh como shell predeterminada para el usuario actual
+echo "🔁 Estableciendo Zsh como shell predeterminada..."
+chsh -s /bin/zsh "$(whoami)"
+
+# Crear archivo .zshrc si no existe
+if [ ! -f "$HOME/.zshrc" ]; then
+    echo "⚙️  Generando archivo .zshrc básico..."
+    cat > "$HOME/.zshrc" <<EOF
+# ~/.zshrc básico
+export EDITOR=emacs
+export VISUAL=emacs
+export TERM=kitty
+EOF
+fi
+
+
 echo "✅ Configuración completada con éxito."
 echo "🔁 Reinicia tu sistema para aplicar todos los cambios."
