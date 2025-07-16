@@ -1,0 +1,122 @@
+(package-initialize)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; MODE FOR ASSEMBLY AND C/C++ ;;;;;;;;;;;;;;;;;;;;;;
+(load-file "~/.dotfiles/Emacs/rc.el")
+(load-file "~/.dotfiles/Emacs/fasm-mode.el")
+(load-file "~/.dotfiles/Emacs/simpc-mode.el")
+(load-file "~/.dotfiles/Emacs/misc-rc.el")
+
+(rc/require-theme 'gruber-darker)
+
+(require 'fasm-mode)
+(add-to-list 'auto-mode-alist '("\\.asm\\'" . fasm-mode))
+
+(require 'fasm-mode)
+(add-to-list 'auto-mode-alist '("\\.[hc]\\(pp\\)?\\'" . simpc-mode))
+
+(rc/require 'smex)
+(global-set-key (kbd "M-x") 'smex)
+(global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+
+(add-to-list 'default-frame-alist `(font . "Iosevka Nerd Font-20"))
+(menu-bar-mode 0)
+(tool-bar-mode 0)
+(scroll-bar-mode 0)
+(column-number-mode 1)
+(global-display-line-numbers-mode)
+
+;; IDO
+(ido-mode 1)
+(ido-everywhere 1)
+
+;; Magit
+(rc/require 'magit)
+
+(setq magit-auto-revert-mode nil)
+
+(global-set-key (kbd "C-c m s") 'magit-status)
+(global-set-key (kbd "C-c m l") 'magit-log)
+
+;; Shortcuts
+;;; multiple cursors
+(rc/require 'multiple-cursors)
+
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(global-set-key (kbd "C->")         'mc/mark-next-like-this)
+(global-set-key (kbd "C-<")         'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-<")     'mc/mark-all-like-this)
+(global-set-key (kbd "C-\"")        'mc/skip-to-next-like-this)
+(global-set-key (kbd "C-:")         'mc/skip-to-previous-like-this)
+
+;;; Move Text
+(rc/require 'move-text)
+(global-set-key (kbd "M-p") 'move-text-up)
+(global-set-key (kbd "M-n") 'move-text-down)
+
+(defun rc/set-up-whitespace-handling ()
+  (interactive)
+  (whitespace-mode 1)
+  (add-to-list 'write-file-functions 'delete-trailing-whitespace))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Packages that don't require configuration
+(rc/require
+ 'scala-mode
+ 'd-mode
+ 'yaml-mode
+ 'glsl-mode
+ 'tuareg
+ 'lua-mode
+ 'less-css-mode
+ 'graphviz-dot-mode
+ 'clojure-mode
+ 'cmake-mode
+ 'rust-mode
+ 'csharp-mode
+ 'nim-mode
+ 'jinja2-mode
+ 'markdown-mode
+ 'purescript-mode
+ 'nix-mode
+ 'dockerfile-mode
+ 'toml-mode
+ 'nginx-mode
+ 'kotlin-mode
+ 'go-mode
+ 'php-mode
+ 'racket-mode
+ 'qml-mode
+ 'ag
+ 'elpy
+ 'typescript-mode
+ 'rfc-mode
+ 'sml-mode
+ )
+
+(require 'compile)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-enabled-themes '(gruber-darker))
+ '(custom-safe-themes
+   '("e13beeb34b932f309fb2c360a04a460821ca99fe58f69e65557d6c1b10ba18c7" default))
+ '(display-line-numbers-type 'relative)
+ '(inhibit-startup-screen t)
+ '(package-selected-packages '(multiple-cursors gruber-darker-theme)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.  )
+
+
+
