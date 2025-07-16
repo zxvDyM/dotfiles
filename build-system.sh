@@ -1,28 +1,22 @@
 #!/bin/bash
-set -e
+set -e # Detener el script si algún comando falla
 
 echo "Iniciando la configuración del sistema Void Linux..."
 
-# Verificar que xbps-install está disponible
-command -v xbps-install >/dev/null 2>&1 || {
-    echo "❌ Error: xbps-install no encontrado. ¿Estás en Void Linux?"
-    exit 1
-}
-
 # Actualizar el sistema
-echo "🔄 Actualizando el sistema..."
-sudo xbps-install -Syu -y
+echo "Actualizando el sistema..."
+sudo xbps-install -Syu
 
 # Habilitar servicios esenciales
-echo "⚙️ Habilitando servicios esenciales..."
-sudo ln -sf /etc/sv/sshd /var/service
-sudo ln -sf /etc/sv/dbus /var/service
-sudo ln -sf /etc/sv/elogind /var/service
-sudo ln -sf /etc/sv/NetworkManager /var/service
+echo "Habilitando servicios esenciales..."
+sudo ln -s /etc/sv/sshd /var/service
+sudo ln -s /etc/sv/dbus /var/service
+sudo ln -s /etc/sv/elogind /var/service
+sudo ln -s /etc/sv/NetworkManager /var/service
 
 # Instalar paquetes necesarios
-echo "📦 Instalando paquetes esenciales..."
-sudo xbps-install -Sy \
+echo "Instalando paquetes de sistema y desarrollo..."
+sudo xbps-install -S \
     xorg \
     lightdm \
     lightdm-gtk-greeter \
@@ -39,105 +33,92 @@ sudo xbps-install -Sy \
     -y
 
 # Habilitar LightDM
-echo "🔌 Habilitando LightDM..."
-sudo ln -sf /etc/sv/lightdm /var/service
+echo "Habilitando LightDM..."
+sudo ln -s /etc/sv/lightdm /var/service
 
-# --- Dotfiles ---
-echo "🗂️ Configurando dotfiles..."
-DOTFILES_BASE_PATH="$HOME/.dotfiles"
-
-if [ -d "$DOTFILES_BASE_PATH" ]; then
-    echo "✅ Directorio ~/.dotfiles ya existe."
+# --- Configuración de Dotfiles ---
+echo "Clonando configuraciones de dotfiles desde GitHub..."
+if [ -d ~/.dotfiles ]; then
+    echo "El directorio ~/.dotfiles ya existe. Saltando la clonación."
 else
-    git clone https://github.com/zxvDyM/dotfiles.git "$DOTFILES_BASE_PATH"
-    echo "✅ Dotfiles clonados en $DOTFILES_BASE_PATH"
+    git clone https://github.com/zxvDyM/dotfiles.git ~/.dotfiles
+    echo "Repositorio dotfiles clonado en ~/.dotfiles"
 fi
 
-# Verificar si hay subcarpeta dotfiles dentro del repo
+# Detectar base path dentro del repo
+DOTFILES_BASE_PATH=~/.dotfiles
 if [ -d "$DOTFILES_BASE_PATH/dotfiles" ]; then
     DOTFILES_BASE_PATH="$DOTFILES_BASE_PATH/dotfiles"
-    echo "📁 Subcarpeta 'dotfiles' detectada. Nueva base: $DOTFILES_BASE_PATH"
+    echo "Usando subcarpeta 'dotfiles' como base: $DOTFILES_BASE_PATH"
+else
+    echo "Usando la raíz del repositorio como base: $DOTFILES_BASE_PATH"
 fi
 
 # Crear carpetas necesarias
-mkdir -p "$HOME/.config/i3"
-mkdir -p "$HOME/.config/kitty"
+mkdir -p ~/.config/i3
+mkdir -p ~/.config/kitty
 
 # Enlace para Emacs
-ln -sf "$DOTFILES_BASE_PATH/Emacs/emacs" "$HOME/.emacs"
+ln -sf "$DOTFILES_BASE_PATH/Emacs/emacs" ~/.emacs
 
-# Enlace para i3
-if [ -f "$DOTFILES_BASE_PATH/i3/config" ]; then
-    ln -sf "$DOTFILES_BASE_PATH/i3/config" "$HOME/.config/i3/config"
+# i3: copiar configuración desde Config/i3/config.txt (con Nerd Font 15)
+I3_CONFIG_REPO_PATH="$DOTFILES_BASE_PATH/Config/i3/config.txt"
+I3_CONFIG_LOCAL_PATH="$HOME/.config/i3/config"
+
+if [ -f "$I3_CONFIG_REPO_PATH" ]; then
+    cp "$I3_CONFIG_REPO_PATH" "$I3_CONFIG_LOCAL_PATH"
+    echo "Configuración de i3 copiada desde $I3_CONFIG_REPO_PATH a $I3_CONFIG_LOCAL_PATH"
 else
-    echo "⚠️ i3 config no encontrada en $DOTFILES_BASE_PATH/i3/config"
+    echo "⚠️ No se encontró $I3_CONFIG_REPO_PATH. Añade la configuración de i3 ahí."
 fi
 
-# Enlace o fallback de kitty.conf
+# Config kitty
 if [ -f "$DOTFILES_BASE_PATH/kitty/kitty.conf" ]; then
-    ln -sf "$DOTFILES_BASE_PATH/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
-    echo "✅ Configuración de kitty enlazada."
+    ln -sf "$DOTFILES_BASE_PATH/kitty/kitty.conf" ~/.config/kitty/kitty.conf
+    echo "Configuración de kitty enlazada."
 else
-    echo "⚠️ No se encontró kitty.conf. Creando archivo por defecto..."
-    mkdir -p "$HOME/.config/kitty"
-    cat <<EOF > "$HOME/.config/kitty/kitty.conf"
-# Configuración de Kitty generada por el script
+    echo "No se encontró kitty.conf, creando configuración por defecto con Iosevka Nerd Font..."
+    cat <<EOF > ~/.config/kitty/kitty.conf
 font_family Iosevka Nerd Font
 font_size 12.0
 enable_audio_bell no
 EOF
-    echo "✅ Configuración por defecto de kitty creada."
 fi
 
 # .bashrc
 if [ -f "$DOTFILES_BASE_PATH/.bashrc" ]; then
-    ln -sf "$DOTFILES_BASE_PATH/.bashrc" "$HOME/.bashrc"
+    ln -sf "$DOTFILES_BASE_PATH/.bashrc" ~/.bashrc
 else
-    echo "⚠️ .bashrc no encontrado en los dotfiles"
+    echo "Advertencia: No se encontró .bashrc en el repositorio."
 fi
 
 # Instalar fuente Iosevka
-echo "🔤 Instalando fuente Iosevka..."
+echo "Instalando fuente Iosevka..."
 if [ -d "$DOTFILES_BASE_PATH/Font/Iosevka" ]; then
-    mkdir -p "$HOME/.local/share/fonts"
-    cp "$DOTFILES_BASE_PATH/Font/Iosevka/"*.ttf "$HOME/.local/share/fonts/"
+    mkdir -p ~/.local/share/fonts
+    cp "$DOTFILES_BASE_PATH/Font/Iosevka/"*.ttf ~/.local/share/fonts/
     fc-cache -fv
-    echo "✅ Fuente Iosevka instalada."
 else
-    echo "❌ No se encontró $DOTFILES_BASE_PATH/Font/Iosevka"
+    echo "Error: No se encontró la carpeta de fuentes Iosevka."
     exit 1
 fi
 
 # Copiar gf2 si existe
-echo "📁 Copiando gf2..."
 if [ -f "$DOTFILES_BASE_PATH/gf/gf/gf2" ]; then
-    cp "$DOTFILES_BASE_PATH/gf/gf/gf2" "$HOME/.gf2"
-    chmod +x "$HOME/.gf2"
-    echo "✅ gf2 copiado a ~/.gf2"
+    cp "$DOTFILES_BASE_PATH/gf/gf/gf2" ~/.gf2
+    chmod +x ~/.gf2
 else
-    echo "⚠️ gf2 no encontrado. Saltando."
+    echo "Advertencia: No se encontró gf2."
 fi
 
-# Configurar GDB
-echo "🛠️ Configurando .gdbinit..."
-cat <<EOF > "$HOME/.gdbinit"
-set breakpoint pending on
-set disassembly-flavor intel
-EOF
+# Configurar .gdbinit
+echo -e "set breakpoint pending on\nset disassembly-flavor intel" > ~/.gdbinit
 
-# Añadir a grupos esenciales
-echo "👤 Añadiendo usuario a grupos esenciales..."
+# Añadir usuario a grupos esenciales
+echo "Añadiendo usuario a grupos video,audio,input,network..."
 sudo usermod -aG video,audio,input,network "$(whoami)"
 
-# Limpieza
-echo "🧹 Eliminando el script actual..."
-SCRIPT_PATH="$(realpath "$0")"
-rm -f "$SCRIPT_PATH"
+# Limpiar script actual (opcional, cuidado)
+# rm -f "$(realpath "$0")"
 
-# Confirmar reinicio
-read -p "🔁 ¿Deseas reiniciar ahora? (y/N): " respuesta
-if [[ "$respuesta" =~ ^[Yy]$ ]]; then
-    sudo reboot
-else
-    echo "✅ Instalación completa. Reinicia cuando estés listo."
-fi
+echo "Configuración completada. Por favor reinicia el sistema."
