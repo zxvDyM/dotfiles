@@ -27,7 +27,7 @@ sudo xbps-install -Sy \
     unzip \
     kitty \
     polkit \
-    elogind-extra \
+    elogind \
     git \
     htop tree curl wget \
     pipewire pipewire-alsa pipewire-pulse wireplumber \
