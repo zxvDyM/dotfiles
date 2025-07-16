@@ -25,7 +25,7 @@ sudo xbps-install -Sy \
     emacs-gtk3 \
     clang gcc gdb nasm fasm \
     unzip \
-    kitty \
+    kitty zsh \
     polkit \
     elogind \
     git \
@@ -112,11 +112,6 @@ echo "📦 Recargando caché de fuentes..."
 fc-cache -fv
 
 echo "✅ Iosevka Nerd Font instalada correctamente."
-
-
-# Instalar Zsh y establecerla como shell por defecto
-echo "🌀 Instalando Zsh..."
-sudo xbps-install -Sy zsh
 
 # Establecer Zsh como shell predeterminada para el usuario actual
 echo "🔁 Estableciendo Zsh como shell predeterminada..."
