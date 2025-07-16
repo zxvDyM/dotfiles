@@ -1,76 +1,79 @@
 #!/bin/bash
-set -e # Detener el script si algún comando falla
+set -e  # Detener el script si algún comando falla
 
-echo "Iniciando la configuración de Zsh, Oh My Zsh y Powerlevel10k..."
+echo "🔧 Iniciando configuración de Zsh, Oh My Zsh y Powerlevel10k..."
 
-# Instalar Zsh si no está ya instalado
-echo "Instalando Zsh..."
-# Verificar si zsh ya está instalado para evitar errores si se ejecuta varias veces
+# 1. Instalar Zsh si no está instalado
 if ! command -v zsh &> /dev/null; then
-    sudo xbps-install -S zsh -y
+    echo "📦 Instalando Zsh..."
+    sudo xbps-install -Sy zsh -y
 else
-    echo "Zsh ya está instalado. Saltando instalación."
+    echo "✅ Zsh ya está instalado."
 fi
 
-# Instalar Oh My Zsh
-echo "Instalando Oh My Zsh..."
-# Usar la instalación desatendida para evitar prompts interactivos
-# Verificar si Oh My Zsh ya está instalado
+# 2. Instalar Oh My Zsh (solo si no está)
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    echo "💡 Instalando Oh My Zsh (modo desatendido)..."
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 else
-    echo "Oh My Zsh ya está instalado. Saltando instalación."
+    echo "✅ Oh My Zsh ya está instalado."
 fi
 
-# Instalar Powerlevel10k
-echo "Clonando Powerlevel10k..."
-# Verificar si Powerlevel10k ya está clonado
-if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" ]; then
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+# 3. Instalar Powerlevel10k
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+P10K_DIR="$ZSH_CUSTOM/themes/powerlevel10k"
+
+if [ ! -d "$P10K_DIR" ]; then
+    echo "🎨 Clonando Powerlevel10k..."
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
 else
-    echo "Powerlevel10k ya está clonado. Saltando clonación."
+    echo "✅ Powerlevel10k ya está clonado."
 fi
 
-# Configurar .zshrc
-ZSHRC_PATH=~/.zshrc
+# 4. Configurar ~/.zshrc
+ZSHRC="$HOME/.zshrc"
+echo "🛠️ Configurando .zshrc..."
 
-echo "Configurando .zshrc para usar Powerlevel10k..."
-
-# Crear un .zshrc si no existe (esto es importante si el usuario no tiene dotfiles para .zshrc)
-if [ ! -f "$ZSHRC_PATH" ]; then
-    echo "# .zshrc generado por el script de configuración de Zsh y Powerlevel10k" > "$ZSHRC_PATH"
-    echo "export ZSH=\"\$HOME/.oh-my-zsh\"" >> "$ZSHRC_PATH"
-    echo "source \$ZSH/oh-my-zsh.sh" >> "$ZSHRC_PATH"
-    echo "Se ha creado un archivo ~/.zshrc básico."
-fi
-
-# Asegurarse de que el tema P10k esté configurado
-# Usamos sed para reemplazar la línea ZSH_THEME o añadirla si no existe
-if grep -q "^ZSH_THEME=" "$ZSHRC_PATH"; then
-    sed -i 's/^ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$ZSHRC_PATH"
-    echo "Se ha configurado Powerlevel10k como tema en tu .zshrc."
+# Crear básico si no existe
+if [ ! -f "$ZSHRC" ]; then
+    cat <<EOF > "$ZSHRC"
+# .zshrc generado automáticamente
+export ZSH="\$HOME/.oh-my-zsh"
+ZSH_THEME="powerlevel10k/powerlevel10k"
+source \$ZSH/oh-my-zsh.sh
+EOF
+    echo "✅ .zshrc básico creado."
 else
-    # Si no hay ZSH_THEME, lo añadimos después de la línea ZSH
-    sed -i "/^export ZSH=/a ZSH_THEME=\"powerlevel10k\/powerlevel10k\"" "$ZSHRC_PATH"
-    echo "Se ha añadido ZSH_THEME para Powerlevel10k en tu .zshrc."
+    # Asegurar que export ZSH esté presente
+    if ! grep -q 'export ZSH=' "$ZSHRC"; then
+        echo 'export ZSH="$HOME/.oh-my-zsh"' >> "$ZSHRC"
+    fi
+
+    # Reemplazar o añadir ZSH_THEME
+    if grep -q '^ZSH_THEME=' "$ZSHRC"; then
+        sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$ZSHRC"
+    else
+        sed -i '/^export ZSH=/a ZSH_THEME="powerlevel10k/powerlevel10k"' "$ZSHRC"
+    fi
+
+    # Asegurar que source oh-my-zsh está presente
+    if ! grep -q 'source \$ZSH/oh-my-zsh.sh' "$ZSHRC"; then
+        echo 'source $ZSH/oh-my-zsh.sh' >> "$ZSHRC"
+    fi
+
+    echo "✅ .zshrc actualizado."
 fi
 
-# Asegurarse de que oh-my-zsh.sh se esté sourceando
-if ! grep -q "source \$ZSH/oh-my-zsh.sh" "$ZSHRC_PATH"; then
-    echo "source \$ZSH/oh-my-zsh.sh" >> "$ZSHRC_PATH"
-    echo "Se ha añadido 'source \$ZSH/oh-my-zsh.sh' a tu .zshrc."
-fi
-
-# Cambiar el shell por defecto a Zsh
-echo "Cambiando el shell por defecto a Zsh..."
-# Verificar si el shell ya es zsh para evitar cambiarlo innecesariamente
+# 5. Cambiar shell por defecto a zsh si aún no lo es
 if [ "$(basename "$SHELL")" != "zsh" ]; then
-    chsh -s "$(which zsh)"
-    echo "El shell por defecto se ha cambiado a Zsh."
+    echo "🔄 Cambiando shell por defecto a Zsh..."
+    chsh -s "$(command -v zsh)"
+    echo "✅ Shell por defecto cambiado a Zsh."
 else
-    echo "Zsh ya es tu shell por defecto. Saltando cambio."
+    echo "✅ Zsh ya es tu shell por defecto."
 fi
 
-echo "Configuración de Zsh y Powerlevel10k completada."
-echo "Por favor, cierra tu terminal actual y abre una nueva para que los cambios surtan efecto."
-echo "La primera vez que inicies Zsh, Powerlevel10k te guiará a través de su asistente de configuración."
+echo ""
+echo "🎉 Configuración completada."
+echo "📝 Cierra esta terminal y abre una nueva para aplicar los cambios."
+echo "💡 Al iniciar Zsh por primera vez, Powerlevel10k te guiará con su asistente de configuración."
