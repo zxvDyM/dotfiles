@@ -30,7 +30,7 @@ sudo xbps-install -Sy \
     elogind \
     git \
     htop tree curl wget \
-    pipewire pipewire-alsa pipewire-pulse wireplumber \
+    pipewire alsa-pipewire pipewire-pulse wireplumber \
     -y
 
 # Habilitar LightDM
