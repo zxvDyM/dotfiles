@@ -7,35 +7,17 @@ echo "🛠️  Iniciando la configuración del sistema Void Linux..."
 echo "📦 Actualizando el sistema..."
 sudo xbps-install -Syu
 
-# Habilitar servicios esenciales
-echo "🔌 Habilitando servicios esenciales..."
-sudo ln -sf /etc/sv/sshd /var/service
-sudo ln -sf /etc/sv/dbus /var/service
-sudo ln -sf /etc/sv/elogind /var/service
-sudo ln -sf /etc/sv/NetworkManager /var/service
 
 # Instalar paquetes necesarios
 echo "📦 Instalando paquetes del sistema..."
 sudo xbps-install -Sy \
-    xorg \
-    lightdm \
-    lightdm-gtk-greeter \
-    NetworkManager \
-    i3 i3status i3lock dmenu \
+    i3 i3status dmenu \
     emacs-gtk3 \
     clang gcc gdb nasm fasm \
     unzip \
     kitty zsh \
     polkit \
-    elogind \
-    git \
-    htop tree curl wget \
-    pipewire alsa-pipewire wireplumber \
-    firefox
-
-# Habilitar LightDM
-echo "🖥️ Habilitando LightDM..."
-sudo ln -sf /etc/sv/lightdm /var/service
+    htop curl wget \
 
 # Detectar base path dentro del repo
 DOTFILES_BASE_PATH=~/.dotfiles
@@ -60,39 +42,6 @@ cat > ~/.gdbinit <<EOF
 set breakpoint pending on
 set disassembly-flavor intel
 EOF
-
-# Añadir usuario a grupos
-echo "👤 Añadiendo usuario a grupos video, audio, input, network..."
-sudo usermod -aG video,audio,input,network "$(whoami)"
-
-# Activar servicios PipeWire (sin systemd)
-echo "🎵 Configurando inicio automático de PipeWire (sin systemd)..."
-mkdir -p ~/.config/autostart
-
-cat > ~/.config/autostart/pipewire.desktop <<EOF
-[Desktop Entry]
-Type=Application
-Exec=pipewire
-Name=PipeWire
-EOF
-
-cat > ~/.config/autostart/wireplumber.desktop <<EOF
-[Desktop Entry]
-Type=Application
-Exec=wireplumber
-Name=WirePlumber
-EOF
-
-# Reiniciar servicios habilitados
-echo "🔁 Reiniciando servicios habilitados..."
-sudo sv restart dbus
-sudo sv restart elogind
-sudo sv restart NetworkManager
-sudo sv restart lightdm
-
-# Mostrar estado de servicios
-echo "📋 Servicios activos:"
-sudo sv status sshd dbus elogind NetworkManager lightdm
 
 # Instalar Iosevka Nerd Font
 echo "🔤 Instalando Iosevka Nerd Font..."
