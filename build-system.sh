@@ -94,5 +94,24 @@ sudo sv restart lightdm
 echo "📋 Servicios activos:"
 sudo sv status sshd dbus elogind NetworkManager lightdm
 
+# Instalar Iosevka Nerd Font
+echo "🔤 Instalando Iosevka Nerd Font..."
+
+FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip"
+FONT_DEST="$HOME/.local/share/fonts"
+
+mkdir -p "$FONT_DEST"
+cd /tmp
+curl -LO "$FONT_URL"
+
+unzip -q Iosevka.zip -d Iosevka
+cp -v Iosevka/*.ttf "$FONT_DEST/"
+
+# Recargar caché de fuentes
+echo "📦 Recargando caché de fuentes..."
+fc-cache -fv
+
+echo "✅ Iosevka Nerd Font instalada correctamente."
+
 echo "✅ Configuración completada con éxito."
 echo "🔁 Reinicia tu sistema para aplicar todos los cambios."
