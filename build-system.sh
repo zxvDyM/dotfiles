@@ -1,22 +1,28 @@
 #!/bin/bash
-set -e # Detener el script si algún comando falla
+set -e
 
 echo "Iniciando la configuración del sistema Void Linux..."
 
+# Verificar que xbps-install está disponible
+command -v xbps-install >/dev/null 2>&1 || {
+    echo "❌ Error: xbps-install no encontrado. ¿Estás en Void Linux?"
+    exit 1
+}
+
 # Actualizar el sistema
-echo "Actualizando el sistema..."
-sudo xbps-install -Syu
+echo "🔄 Actualizando el sistema..."
+sudo xbps-install -Syu -y
 
 # Habilitar servicios esenciales
-echo "Habilitando servicios esenciales..."
-sudo ln -s /etc/sv/sshd /var/service
-sudo ln -s /etc/sv/dbus /var/service
-sudo ln -s /etc/sv/elogind /var/service
-sudo ln -s /etc/sv/NetworkManager /var/service
+echo "⚙️ Habilitando servicios esenciales..."
+sudo ln -sf /etc/sv/sshd /var/service
+sudo ln -sf /etc/sv/dbus /var/service
+sudo ln -sf /etc/sv/elogind /var/service
+sudo ln -sf /etc/sv/NetworkManager /var/service
 
 # Instalar paquetes necesarios
-echo "Instalando paquetes de sistema y desarrollo..."
-sudo xbps-install -S \
+echo "📦 Instalando paquetes esenciales..."
+sudo xbps-install -Sy \
     xorg \
     lightdm \
     lightdm-gtk-greeter \
@@ -32,109 +38,106 @@ sudo xbps-install -S \
     htop tree curl wget \
     -y
 
-# Habilitar el servicio LightDM después de instalarlo
-echo "Habilitando LightDM..."
-sudo ln -s /etc/sv/lightdm /var/service
+# Habilitar LightDM
+echo "🔌 Habilitando LightDM..."
+sudo ln -sf /etc/sv/lightdm /var/service
 
-# --- Configuración de Dotfiles ---
-echo "Clonando configuraciones de dotfiles desde GitHub..."
-# IMPORTANTE: Reemplaza <TU_USUARIO> y <TU_REPOSITORIO> con tus datos reales.
-# Se asume que el repositorio es https://github.com/zxvDyM/dotfiles.git
-# Clonar directamente en ~/.dotfiles
-if [ -d ~/.dotfiles ]; then
-    echo "El directorio ~/.dotfiles ya existe. Saltando la clonación del repositorio."
+# --- Dotfiles ---
+echo "🗂️ Configurando dotfiles..."
+DOTFILES_BASE_PATH="$HOME/.dotfiles"
+
+if [ -d "$DOTFILES_BASE_PATH" ]; then
+    echo "✅ Directorio ~/.dotfiles ya existe."
 else
-    git clone https://github.com/zxvDyM/dotfiles.git ~/.dotfiles
-    echo "Repositorio dotfiles clonado en ~/.dotfiles"
+    git clone https://github.com/zxvDyM/dotfiles.git "$DOTFILES_BASE_PATH"
+    echo "✅ Dotfiles clonados en $DOTFILES_BASE_PATH"
 fi
 
-# Determinar la ruta base de los dotfiles dentro del repositorio clonado
-# Si el repositorio tiene una subcarpeta 'dotfiles' (ej. repo/dotfiles/config), la usaremos.
-# De lo contrario, usaremos la raíz del repositorio clonado.
-DOTFILES_BASE_PATH=~/.dotfiles
+# Verificar si hay subcarpeta dotfiles dentro del repo
 if [ -d "$DOTFILES_BASE_PATH/dotfiles" ]; then
     DOTFILES_BASE_PATH="$DOTFILES_BASE_PATH/dotfiles"
-    echo "Detectada subcarpeta 'dotfiles' dentro del repositorio. La ruta base es: $DOTFILES_BASE_PATH"
-else
-    echo "No se detectó una subcarpeta 'dotfiles'. La ruta base es: $DOTFILES_BASE_PATH"
+    echo "📁 Subcarpeta 'dotfiles' detectada. Nueva base: $DOTFILES_BASE_PATH"
 fi
 
-
-echo "Creando enlaces simbólicos para dotfiles..."
-# Asegúrate de que las carpetas de destino existen
-mkdir -p ~/.config/i3
-mkdir -p ~/.config/kitty
+# Crear carpetas necesarias
+mkdir -p "$HOME/.config/i3"
+mkdir -p "$HOME/.config/kitty"
 
 # Enlace para Emacs
-ln -sf "$DOTFILES_BASE_PATH/Emacs/emacs" ~/.emacs
+ln -sf "$DOTFILES_BASE_PATH/Emacs/emacs" "$HOME/.emacs"
 
-# Enlace para i3 (ajusta la ruta si tu config de i3 no está en ~/.dotfiles/i3/config)
+# Enlace para i3
 if [ -f "$DOTFILES_BASE_PATH/i3/config" ]; then
-    ln -sf "$DOTFILES_BASE_PATH/i3/config" ~/.config/i3/config
+    ln -sf "$DOTFILES_BASE_PATH/i3/config" "$HOME/.config/i3/config"
 else
-    echo "Advertencia: No se encontró la configuración de i3 en $DOTFILES_BASE_PATH/i3/config. Asegúrate de añadirla a tu repositorio."
+    echo "⚠️ i3 config no encontrada en $DOTFILES_BASE_PATH/i3/config"
 fi
 
-# Enlace para kitty y configuración de fuente
+# Enlace o fallback de kitty.conf
 if [ -f "$DOTFILES_BASE_PATH/kitty/kitty.conf" ]; then
-    ln -sf "$DOTFILES_BASE_PATH/kitty/kitty.conf" ~/.config/kitty/kitty.conf
-    echo "Se ha enlazado tu configuración de kitty. Asegúrate de que incluye 'font_family Iosevka Nerd Font' para usar la fuente instalada."
+    ln -sf "$DOTFILES_BASE_PATH/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
+    echo "✅ Configuración de kitty enlazada."
 else
-    echo "Advertencia: No se encontró la configuración de kitty en $DOTFILES_BASE_PATH/kitty/kitty.conf."
-    echo "Creando una configuración de kitty por defecto con Iosevka Nerd Font..."
-    mkdir -p ~/.config/kitty
-    cat <<EOF > ~/.config/kitty/kitty.conf
-# Configuración de Kitty generada por el script de instalación
+    echo "⚠️ No se encontró kitty.conf. Creando archivo por defecto..."
+    mkdir -p "$HOME/.config/kitty"
+    cat <<EOF > "$HOME/.config/kitty/kitty.conf"
+# Configuración de Kitty generada por el script
 font_family Iosevka Nerd Font
 font_size 12.0
 enable_audio_bell no
 EOF
-    echo "Se ha creado un archivo ~/.config/kitty/kitty.conf por defecto."
+    echo "✅ Configuración por defecto de kitty creada."
 fi
 
-# Si tienes un .bashrc en tu repo
+# .bashrc
 if [ -f "$DOTFILES_BASE_PATH/.bashrc" ]; then
-    ln -sf "$DOTFILES_BASE_PATH/.bashrc" ~/.bashrc
+    ln -sf "$DOTFILES_BASE_PATH/.bashrc" "$HOME/.bashrc"
 else
-    echo "Advertencia: No se encontró .bashrc en tu repositorio. Puedes crearlo manualmente o añadirlo a tus dotfiles."
+    echo "⚠️ .bashrc no encontrado en los dotfiles"
 fi
 
-# Instalar la fuente Iosevka
-echo "Instalando la fuente Iosevka..."
-# Asumiendo que la carpeta 'Font/Iosevka' está dentro del repositorio clonado
+# Instalar fuente Iosevka
+echo "🔤 Instalando fuente Iosevka..."
 if [ -d "$DOTFILES_BASE_PATH/Font/Iosevka" ]; then
-    cd "$DOTFILES_BASE_PATH/Font/Iosevka"
-    mkdir -p ~/.local/share/fonts
-    cp *.ttf ~/.local/share/fonts/
+    mkdir -p "$HOME/.local/share/fonts"
+    cp "$DOTFILES_BASE_PATH/Font/Iosevka/"*.ttf "$HOME/.local/share/fonts/"
     fc-cache -fv
-    cd ~ # Volver al directorio home
+    echo "✅ Fuente Iosevka instalada."
 else
-    echo "Error: El directorio $DOTFILES_BASE_PATH/Font/Iosevka no existe dentro del repositorio clonado. Asegúrate de que la estructura es correcta."
-    exit 1 # Salir si la fuente no se puede instalar
+    echo "❌ No se encontró $DOTFILES_BASE_PATH/Font/Iosevka"
+    exit 1
 fi
 
-# Copiar gf2 (si es necesario y el archivo existe en el repo)
-echo "Copiando gf2 (si es necesario y el archivo existe en el repo)..."
+# Copiar gf2 si existe
+echo "📁 Copiando gf2..."
 if [ -f "$DOTFILES_BASE_PATH/gf/gf/gf2" ]; then
-    cp "$DOTFILES_BASE_PATH/gf/gf/gf2" ~/.gf2
-    chmod +x ~/.gf2 # Dar permisos de ejecución si es un script/binario
+    cp "$DOTFILES_BASE_PATH/gf/gf/gf2" "$HOME/.gf2"
+    chmod +x "$HOME/.gf2"
+    echo "✅ gf2 copiado a ~/.gf2"
 else
-    echo "Advertencia: El archivo $DOTFILES_BASE_PATH/gf/gf/gf2 no se encontró en el repositorio. Saltando la copia de gf2."
+    echo "⚠️ gf2 no encontrado. Saltando."
 fi
 
-# Configurar .gdbinit
-echo "Configurando .gdbinit..."
-echo "set breakpoint pending on" > ~/.gdbinit
-echo "set disassembly-flavor intel" >> ~/.gdbinit
+# Configurar GDB
+echo "🛠️ Configurando .gdbinit..."
+cat <<EOF > "$HOME/.gdbinit"
+set breakpoint pending on
+set disassembly-flavor intel
+EOF
 
-# Añadir el usuario actual a grupos esenciales
-echo "Añadiendo el usuario actual a grupos esenciales (video, audio, input, network)..."
-# Usamos "$(whoami)" para obtener el nombre del usuario que ejecuta el script
+# Añadir a grupos esenciales
+echo "👤 Añadiendo usuario a grupos esenciales..."
 sudo usermod -aG video,audio,input,network "$(whoami)"
 
-# --- Limpieza ---
-echo "Realizando limpieza de archivos temporales..."
-rm -rf ~/build-system.sh
+# Limpieza
+echo "🧹 Eliminando el script actual..."
+SCRIPT_PATH="$(realpath "$0")"
+rm -f "$SCRIPT_PATH"
 
-echo "Configuración completada. Por favor, reinicia el sistema para aplicar todos los cambios, especialmente los cambios de grupo."
-sudo reboot
+# Confirmar reinicio
+read -p "🔁 ¿Deseas reiniciar ahora? (y/N): " respuesta
+if [[ "$respuesta" =~ ^[Yy]$ ]]; then
+    sudo reboot
+else
+    echo "✅ Instalación completa. Reinicia cuando estés listo."
+fi
