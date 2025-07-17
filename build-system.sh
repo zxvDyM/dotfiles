@@ -22,10 +22,10 @@ sudo xbps-install -Sy \
 echo "📝 Copiando configuración de Emacs..."
 mkdir -p ~/.emacs.d
 cp -r ~/dotfiles/Config/Emacs ~/.dotfiles
-cp ~/dotfiles/Emacs/emacs ~/.emacs
+cp ~/dotfiles/Config/Emacs/emacs ~/.emacs
 
 # ⚠️ Esta línea se comenta para evitar eliminar tus dotfiles
-# rm -rf ~/dotfiles
+rm -rf ~/dotfiles
 
 # Configurar GDB
 echo "⚙️  Configurando GDB..."
