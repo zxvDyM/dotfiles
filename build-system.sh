@@ -17,7 +17,10 @@ sudo xbps-install -Sy \
     kitty zsh \
     htop curl wget
 
+cp ~/dotfiles/Config/Emacs ~/.dotfiles
 cp ~/dotfiles/Emacs/emacs ~/.emacs
+
+rm -rf dotfiles
 
 # .gdbinit
 echo "⚙️  Configurando GDB..."
