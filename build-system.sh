@@ -10,34 +10,14 @@ sudo xbps-install -Syu
 # Instalar paquetes necesarios
 echo "📦 Instalando paquetes del sistema..."
 sudo xbps-install -Sy \
-    i3 i3status dmenu \
+    okular \
     emacs-gtk3 \
     clang gcc gdb nasm fasm \
     unzip \
     kitty zsh \
-    polkit \
     htop curl wget
 
-# Detectar base path dentro del repo
-DOTFILES_BASE_PATH=~/.dotfiles
-if [ -d "$DOTFILES_BASE_PATH/dotfiles" ]; then
-    DOTFILES_BASE_PATH="$DOTFILES_BASE_PATH/dotfiles"
-    echo "📂 Usando subcarpeta 'dotfiles' como base: $DOTFILES_BASE_PATH"
-else
-    echo "📂 Usando la raíz del repositorio como base: $DOTFILES_BASE_PATH"
-fi
-
-# Enlace para Emacs
-if [ -f "$DOTFILES_BASE_PATH/Emacs/emacs" ]; then
-    if [ ! -L ~/.emacs ]; then
-        ln -sf "$DOTFILES_BASE_PATH/Emacs/emacs" ~/.emacs
-        echo "📎 Enlace creado para ~/.emacs"
-    else
-        echo "⚠️ El enlace simbólico ~/.emacs ya existe"
-    fi
-else
-    echo "⚠️  Archivo de Emacs no encontrado: $DOTFILES_BASE_PATH/Emacs/emacs"
-fi
+cp ~/dotfiles/Emacs/emacs ~/.emacs
 
 # .gdbinit
 echo "⚙️  Configurando GDB..."
@@ -79,7 +59,6 @@ if [ ! -f "$HOME/.zshrc" ]; then
 # ~/.zshrc básico
 export EDITOR=emacs
 export VISUAL=emacs
-export TERM=kitty
 EOF
 else
     echo "⚙️  .zshrc ya existe, añadiendo las variables necesarias..."
