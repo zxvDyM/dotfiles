@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # Detener el script si algún comando falla
+set -eu  # Detener el script si algún comando falla o si se usa una variable no definida
 
 echo "🛠️  Iniciando la configuración del sistema Void Linux..."
 
@@ -15,14 +15,19 @@ sudo xbps-install -Sy \
     clang gcc gdb nasm fasm \
     unzip \
     kitty zsh \
+    git \
     htop curl wget
 
-cp ~/dotfiles/Config/Emacs ~/.dotfiles
+# Copiar configuraciones de Emacs
+echo "📝 Copiando configuración de Emacs..."
+mkdir -p ~/.emacs.d
+cp -r ~/dotfiles/Config/Emacs ~/.dotfiles
 cp ~/dotfiles/Emacs/emacs ~/.emacs
 
-rm -rf dotfiles
+# ⚠️ Esta línea se comenta para evitar eliminar tus dotfiles
+# rm -rf ~/dotfiles
 
-# .gdbinit
+# Configurar GDB
 echo "⚙️  Configurando GDB..."
 cat > ~/.gdbinit <<EOF
 set breakpoint pending on
@@ -51,24 +56,32 @@ fc-cache -fv
 
 echo "✅ Iosevka Nerd Font instalada correctamente."
 
-# Establecer Zsh como shell predeterminada para el usuario actual
+# Instalar Powerlevel10k
+echo "🎨 Instalando Powerlevel10k..."
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.powerlevel10k
+
+# Establecer Zsh como shell predeterminada
 echo "🔁 Estableciendo Zsh como shell predeterminada..."
 chsh -s /bin/zsh "$(whoami)"
 
-# Agregar variables al archivo .zshrc
+# Crear o actualizar .zshrc
 if [ ! -f "$HOME/.zshrc" ]; then
     echo "⚙️  Generando archivo .zshrc básico..."
     cat > "$HOME/.zshrc" <<EOF
 # ~/.zshrc básico
 export EDITOR=emacs
 export VISUAL=emacs
+export TERM=kitty
+
+# Habilitar Powerlevel10k
+source ~/.powerlevel10k/powerlevel10k.zsh-theme
 EOF
 else
-    echo "⚙️  .zshrc ya existe, añadiendo las variables necesarias..."
-    # Añadir las variables al final del archivo si no existen
+    echo "⚙️  .zshrc ya existe, añadiendo configuraciones si faltan..."
     grep -qxF 'export EDITOR=emacs' "$HOME/.zshrc" || echo 'export EDITOR=emacs' >> "$HOME/.zshrc"
     grep -qxF 'export VISUAL=emacs' "$HOME/.zshrc" || echo 'export VISUAL=emacs' >> "$HOME/.zshrc"
     grep -qxF 'export TERM=kitty' "$HOME/.zshrc" || echo 'export TERM=kitty' >> "$HOME/.zshrc"
+    grep -qxF 'source ~/.powerlevel10k/powerlevel10k.zsh-theme' "$HOME/.zshrc" || echo 'source ~/.powerlevel10k/powerlevel10k.zsh-theme' >> "$HOME/.zshrc"
 fi
 
 echo "✅ Configuración completada con éxito."
