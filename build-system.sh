@@ -25,6 +25,7 @@ sudo xbps-install -Sy \
     neofetch
 
 # ⚠️ Esta línea se comenta para evitar eliminar tus dotfiles
+cd
 rm -rf ~/dotfiles
 
 # Configurar GDB
