@@ -56,10 +56,6 @@ fc-cache -fv
 
 echo "✅ Iosevka Nerd Font instalada correctamente."
 
-# Instalar Powerlevel10k
-echo "🎨 Instalando Powerlevel10k..."
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.powerlevel10k
-
 # Establecer Zsh como shell predeterminada
 echo "🔁 Estableciendo Zsh como shell predeterminada..."
 chsh -s /bin/zsh "$(whoami)"
@@ -71,17 +67,12 @@ if [ ! -f "$HOME/.zshrc" ]; then
 # ~/.zshrc básico
 export EDITOR=emacs
 export VISUAL=emacs
-export TERM=kitty
 
-# Habilitar Powerlevel10k
-source ~/.powerlevel10k/powerlevel10k.zsh-theme
 EOF
 else
     echo "⚙️  .zshrc ya existe, añadiendo configuraciones si faltan..."
     grep -qxF 'export EDITOR=emacs' "$HOME/.zshrc" || echo 'export EDITOR=emacs' >> "$HOME/.zshrc"
     grep -qxF 'export VISUAL=emacs' "$HOME/.zshrc" || echo 'export VISUAL=emacs' >> "$HOME/.zshrc"
-    grep -qxF 'export TERM=kitty' "$HOME/.zshrc" || echo 'export TERM=kitty' >> "$HOME/.zshrc"
-    grep -qxF 'source ~/.powerlevel10k/powerlevel10k.zsh-theme' "$HOME/.zshrc" || echo 'source ~/.powerlevel10k/powerlevel10k.zsh-theme' >> "$HOME/.zshrc"
 fi
 
 echo "✅ Configuración completada con éxito."
