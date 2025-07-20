@@ -25,6 +25,7 @@ sudo xbps-install -Sy \
     neofetch
 
 # Configure Kitty terminal
+mkdir ~/.config/kitty/
 cp ~/dotfiles/kitty.conf ~/.config/kitty/kitty.conf
 
 # Configurar GDB
