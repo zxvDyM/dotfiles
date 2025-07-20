@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu  # Detener el script si algún comando falla o si se usa una variable no definida
+set -eu  # Detener si hay error o variable no definida
 
 echo "🛠️  Iniciando la configuración del sistema Void Linux..."
 
@@ -7,12 +7,15 @@ echo "🛠️  Iniciando la configuración del sistema Void Linux..."
 echo "📦 Actualizando el sistema..."
 sudo xbps-install -Syu
 
-# Copiar configuraciones de Emacs
+# Copiar configuración de Emacs (haciendo backup si ya existe)
 echo "📝 Copiando configuración de Emacs..."
-mkdir -p ~/.emacs.d
-cp -r ~/dotfiles/.emacs.d/ ~/
+if [ -d ~/.emacs.d ]; then
+    echo "📁 Se detectó una configuración previa de Emacs. Haciendo backup..."
+    mv ~/.emacs.d ~/.emacs.d.backup.$(date +%s)
+fi
+cp -r ~/dotfiles/.emacs.d/ ~/.emacs.d
 
-# Instalar paquetes necesarios
+# Instalar paquetes del sistema
 echo "📦 Instalando paquetes del sistema..."
 sudo xbps-install -Sy \
     okular \
@@ -24,8 +27,9 @@ sudo xbps-install -Sy \
     htop curl wget \
     neofetch
 
-# Configure Kitty terminal
-mkdir ~/.config/kitty/
+# Configurar terminal Kitty
+echo "🖥️ Configurando Kitty..."
+mkdir -p ~/.config/kitty/
 cp ~/dotfiles/kitty.conf ~/.config/kitty/kitty.conf
 
 # Configurar GDB
@@ -35,9 +39,8 @@ set breakpoint pending on
 set disassembly-flavor intel
 EOF
 
-# Instalar Iosevka Nerd Font si no está instalada
+# Verificar si Iosevka Nerd Font está instalada
 echo "🔤 Verificando si Iosevka Nerd Font ya está instalada..."
-
 if fc-list | grep -iq "Iosevka Nerd Font"; then
     echo "✅ Iosevka Nerd Font ya está instalada. Saltando instalación..."
 else
@@ -47,16 +50,17 @@ else
     FONT_DEST="$HOME/.local/share/fonts"
 
     mkdir -p "$FONT_DEST"
-    cd /tmp
+
+    pushd /tmp > /dev/null
     curl -LO "$FONT_URL"
 
     unzip -q Iosevka.zip -d Iosevka
     cp -v Iosevka/*.ttf "$FONT_DEST/"
 
     # Limpiar archivos temporales
-    rm -rf /tmp/Iosevka.zip /tmp/Iosevka
+    rm -rf Iosevka.zip Iosevka
+    popd > /dev/null
 
-    # Recargar caché de fuentes
     echo "📦 Recargando caché de fuentes..."
     fc-cache -fv
 
@@ -65,38 +69,39 @@ fi
 
 # Establecer Zsh como shell predeterminada
 echo "🔁 Estableciendo Zsh como shell predeterminada..."
-chsh -s $(which zsh)
+ZSH_PATH=$(command -v zsh)
+if grep -q "$ZSH_PATH" /etc/shells; then
+    chsh -s "$ZSH_PATH"
+    echo "✅ Shell cambiado a Zsh."
+else
+    echo "⚠️  Zsh no está listado en /etc/shells. Agrega '$ZSH_PATH' manualmente si es necesario."
+fi
 
-# --- Install Oh My Zsh ---
-
-# Check if Oh My Zsh is already installed
+# Instalar Oh My Zsh si no está instalado
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "✨ Installing Oh My Zsh..."
+    echo "✨ Instalando Oh My Zsh..."
+    # ⚠️ Código remoto: asegúrate de revisarlo antes de ejecutar en sistemas de producción
     sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || \
     sh -c "$(wget -O- https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-
-    # The installer usually sources .zshrc and restarts the shell.
-    # If not, you might need to manually source it here.
-    # source "$HOME/.zshrc" # Uncomment if the shell doesn't restart automatically
 else
-    echo "✅ Oh My Zsh is already installed. Skipping installation."
+    echo "✅ Oh My Zsh ya está instalado. Saltando instalación."
 fi
 
-# --- Install and Configure Powerlevel10k Theme ---
-
-# Check if Powerlevel10k is already cloned
-if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" ]; then
-    echo "🎨 Installing Powerlevel10k theme..."
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+# Instalar tema Powerlevel10k si no está presente
+P10K_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+if [ ! -d "$P10K_DIR" ]; then
+    echo "🎨 Instalando tema Powerlevel10k..."
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
 else
-    echo "✅ Powerlevel10k theme is already cloned. Skipping clone."
+    echo "✅ Powerlevel10k ya está instalado. Saltando clonación."
 fi
 
-source ~/.zshrc
+# Nota sobre Zsh
+echo "ℹ️ Si no ves los cambios de Zsh, ejecuta: source ~/.zshrc o reinicia la terminal."
 
-# ⚠️ Esta línea se comenta para evitar eliminar tus dotfiles
-cd
-rm -rf ~/dotfiles
+# ⚠️ No eliminar dotfiles automáticamente, solo advertir
+echo "⚠️ NOTA: Tus dotfiles NO se eliminaron. Puedes hacerlo manualmente si lo deseas:"
+echo "    rm -rf ~/dotfiles"
 
 echo "✅ Configuración completada con éxito."
 echo "🔁 Reinicia tu sistema para aplicar todos los cambios."
