@@ -10,7 +10,7 @@ sudo xbps-install -Syu
 # Copiar configuraciones de Emacs
 echo "📝 Copiando configuración de Emacs..."
 mkdir -p ~/.emacs.d
-cp -r ~/dotfiles/.emacs.d/ ~/.emacs.d
+cp -r ~/dotfiles/.emacs.d/ ~/
 
 # Instalar paquetes necesarios
 echo "📦 Instalando paquetes del sistema..."
