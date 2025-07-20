@@ -66,41 +66,6 @@ fi
 echo "🔁 Estableciendo Zsh como shell predeterminada..."
 chsh -s /bin/zsh "$(whoami)"
 
-# --- Zshrc Management ---
-
-# Create or append to .zshrc with basic editor settings
-if [ ! -f "$HOME/.zshrc" ]; then
-    echo "⚙️ Generating basic .zshrc file..."
-    cat > "$HOME/.zshrc" <<'EOF_ZSHRC_BASE'
-# ~/.zshrc basic setup
-export EDITOR=emacs
-export VISUAL=emacs
-
-EOF_ZSHRC_BASE
-else
-    echo "📄 Appending configuration to existing .zshrc..."
-    cat >> "$HOME/.zshrc" <<'EOF_ZSHRC_APPEND'
-
-# Configuration added by script
-export EDITOR=emacs
-export VISUAL=emacs
-
-EOF_ZSHRC_APPEND
-fi
-
-# --- Zsh Autocompletion ---
-
-# Add basic autocompletion if not already present
-if ! grep -q "autoload -Uz compinit" "$HOME/.zshrc"; then
-    echo "🚀 Adding Zsh autocompletion setup to .zshrc..."
-    cat >> "$HOME/.zshrc" <<'EOF_AUTOCOMPLETION'
-
-# Enable basic autocompletion
-autoload -Uz compinit
-compinit
-EOF_AUTOCOMPLETION
-fi
-
 # --- Install Oh My Zsh ---
 
 # Check if Oh My Zsh is already installed
@@ -124,22 +89,6 @@ if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" ]; then
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
 else
     echo "✅ Powerlevel10k theme is already cloned. Skipping clone."
-fi
-
-# Configure .zshrc to use Powerlevel10k if not already set
-if ! grep -q "ZSH_THEME=\"powerlevel10k\"" "$HOME/.zshrc"; then
-    echo "✍️ Setting Powerlevel10k as the Zsh theme in .zshrc..."
-    # Use awk or sed to replace ZSH_THEME line without creating new sections
-    # This specifically replaces an existing ZSH_THEME="..." line
-    awk -i inplace '/^ZSH_THEME=/ { $0="ZSH_THEME=\"powerlevel10k\"" } { print }' "$HOME/.zshrc"
-    
-    # Fallback if ZSH_THEME line doesn't exist, append it
-    if ! grep -q "^ZSH_THEME=\"powerlevel10k\"" "$HOME/.zshrc"; then
-        echo "Adding ZSH_THEME=\"powerlevel10k\" to .zshrc..."
-        echo "ZSH_THEME=\"powerlevel10k\"" >> "$HOME/.zshrc"
-    fi
-else
-    echo "✅ Powerlevel10k is already set as the Zsh theme. Skipping theme configuration."
 fi
 
 source ~/.zshrc
