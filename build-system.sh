@@ -7,6 +7,11 @@ echo "🛠️  Iniciando la configuración del sistema Void Linux..."
 echo "📦 Actualizando el sistema..."
 sudo xbps-install -Syu
 
+# Copiar configuraciones de Emacs
+echo "📝 Copiando configuración de Emacs..."
+mkdir -p ~/.emacs.d
+cp -r ~/dotfiles/.emacs.d/ ~/.emacs.d
+
 # Instalar paquetes necesarios
 echo "📦 Instalando paquetes del sistema..."
 sudo xbps-install -Sy \
@@ -16,13 +21,8 @@ sudo xbps-install -Sy \
     unzip \
     kitty zsh \
     git \
-    htop curl wget
-
-# Copiar configuraciones de Emacs
-echo "📝 Copiando configuración de Emacs..."
-mkdir -p ~/.emacs.d
-cp -r ~/dotfiles/Config/Emacs ~/.dotfiles
-cp ~/dotfiles/Config/Emacs/emacs ~/.emacs
+    htop curl wget \
+    neofetch
 
 # ⚠️ Esta línea se comenta para evitar eliminar tus dotfiles
 rm -rf ~/dotfiles
