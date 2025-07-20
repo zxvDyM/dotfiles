@@ -64,7 +64,7 @@ fi
 
 # Establecer Zsh como shell predeterminada
 echo "🔁 Estableciendo Zsh como shell predeterminada..."
-chsh -s /bin/zsh "$(whoami)"
+chsh -s $(which zsh)
 
 # --- Install Oh My Zsh ---
 
