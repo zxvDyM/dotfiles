@@ -24,10 +24,6 @@ sudo xbps-install -Sy \
     htop curl wget \
     neofetch
 
-# ⚠️ Esta línea se comenta para evitar eliminar tus dotfiles
-cd
-rm -rf ~/dotfiles
-
 # Configurar GDB
 echo "⚙️  Configurando GDB..."
 cat > ~/.gdbinit <<EOF
@@ -81,6 +77,10 @@ else
     grep -qxF 'export EDITOR=emacs' "$HOME/.zshrc" || echo 'export EDITOR=emacs' >> "$HOME/.zshrc"
     grep -qxF 'export VISUAL=emacs' "$HOME/.zshrc" || echo 'export VISUAL=emacs' >> "$HOME/.zshrc"
 fi
+
+# ⚠️ Esta línea se comenta para evitar eliminar tus dotfiles
+cd
+rm -rf ~/dotfiles
 
 echo "✅ Configuración completada con éxito."
 echo "🔁 Reinicia tu sistema para aplicar todos los cambios."
