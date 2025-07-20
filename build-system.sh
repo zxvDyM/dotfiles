@@ -35,27 +35,33 @@ set breakpoint pending on
 set disassembly-flavor intel
 EOF
 
-# Instalar Iosevka Nerd Font
-echo "🔤 Instalando Iosevka Nerd Font..."
+# Instalar Iosevka Nerd Font si no está instalada
+echo "🔤 Verificando si Iosevka Nerd Font ya está instalada..."
 
-FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip"
-FONT_DEST="$HOME/.local/share/fonts"
+if fc-list | grep -iq "Iosevka Nerd Font"; then
+    echo "✅ Iosevka Nerd Font ya está instalada. Saltando instalación..."
+else
+    echo "📥 Iosevka Nerd Font no encontrada. Procediendo con la instalación..."
 
-mkdir -p "$FONT_DEST"
-cd /tmp
-curl -LO "$FONT_URL"
+    FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip"
+    FONT_DEST="$HOME/.local/share/fonts"
 
-unzip -q Iosevka.zip -d Iosevka
-cp -v Iosevka/*.ttf "$FONT_DEST/"
+    mkdir -p "$FONT_DEST"
+    cd /tmp
+    curl -LO "$FONT_URL"
 
-# Limpiar archivos temporales
-rm -rf /tmp/Iosevka.zip /tmp/Iosevka
+    unzip -q Iosevka.zip -d Iosevka
+    cp -v Iosevka/*.ttf "$FONT_DEST/"
 
-# Recargar caché de fuentes
-echo "📦 Recargando caché de fuentes..."
-fc-cache -fv
+    # Limpiar archivos temporales
+    rm -rf /tmp/Iosevka.zip /tmp/Iosevka
 
-echo "✅ Iosevka Nerd Font instalada correctamente."
+    # Recargar caché de fuentes
+    echo "📦 Recargando caché de fuentes..."
+    fc-cache -fv
+
+    echo "✅ Iosevka Nerd Font instalada correctamente."
+fi
 
 # Establecer Zsh como shell predeterminada
 echo "🔁 Estableciendo Zsh como shell predeterminada..."
