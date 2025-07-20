@@ -96,6 +96,8 @@ else
     echo "✅ Powerlevel10k ya está instalado. Saltando clonación."
 fi
 
+# Configuracion de .zshrc
+
 # Nota sobre Zsh
 echo "ℹ️ Si no ves los cambios de Zsh, ejecuta: source ~/.zshrc o reinicia la terminal."
 
