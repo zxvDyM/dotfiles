@@ -1,7 +1,16 @@
 #!/bin/bash
-set -eu  # Detener si hay error o variable no definida
+set -eu
 
 echo "🛠️  Iniciando la configuración del sistema Void Linux..."
+
+# Verificar acceso a dotfiles
+if [ ! -d ~/dotfiles ]; then
+    echo "❌ Directorio ~/dotfiles no encontrado. Aborta la configuración."
+    exit 1
+fi
+
+# Advertencia sobre uso de sudo
+echo "⚠️  Este script requiere privilegios de sudo. Asegúrate de tener acceso."
 
 # Actualizar el sistema
 echo "📦 Actualizando el sistema..."
@@ -25,7 +34,8 @@ sudo xbps-install -Sy \
     kitty zsh \
     git \
     htop curl wget \
-    neofetch
+    neofetch \
+    fontconfig
 
 # Configurar terminal Kitty
 echo "🖥️ Configurando Kitty..."
@@ -39,12 +49,12 @@ set breakpoint pending on
 set disassembly-flavor intel
 EOF
 
-# Verificar si Iosevka Nerd Font está instalada
+# Instalar Iosevka Nerd Font si no está
 echo "🔤 Verificando si Iosevka Nerd Font ya está instalada..."
 if fc-list | grep -iq "Iosevka Nerd Font"; then
     echo "✅ Iosevka Nerd Font ya está instalada. Saltando instalación..."
 else
-    echo "📥 Iosevka Nerd Font no encontrada. Procediendo con la instalación..."
+    echo "📥 Instalando Iosevka Nerd Font..."
 
     FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip"
     FONT_DEST="$HOME/.local/share/fonts"
@@ -57,7 +67,6 @@ else
     unzip -q Iosevka.zip -d Iosevka
     cp -v Iosevka/*.ttf "$FONT_DEST/"
 
-    # Limpiar archivos temporales
     rm -rf Iosevka.zip Iosevka
     popd > /dev/null
 
@@ -80,7 +89,6 @@ fi
 # Instalar Oh My Zsh si no está instalado
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "✨ Instalando Oh My Zsh..."
-    # ⚠️ Código remoto: asegúrate de revisarlo antes de ejecutar en sistemas de producción
     sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || \
     sh -c "$(wget -O- https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 else
@@ -96,14 +104,34 @@ else
     echo "✅ Powerlevel10k ya está instalado. Saltando clonación."
 fi
 
-# Configuracion de .zshrc
+# Instalar plugins útiles
+ZSH_PLUGIN_DIR="$HOME/.oh-my-zsh/custom/plugins"
+mkdir -p "$ZSH_PLUGIN_DIR"
+
+if [ ! -d "$ZSH_PLUGIN_DIR/zsh-autosuggestions" ]; then
+    echo "🔌 Instalando zsh-autosuggestions..."
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_PLUGIN_DIR/zsh-autosuggestions"
+fi
+
+if [ ! -d "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting" ]; then
+    echo "🔌 Instalando zsh-syntax-highlighting..."
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting"
+fi
 
 # Nota sobre Zsh
 echo "ℹ️ Si no ves los cambios de Zsh, ejecuta: source ~/.zshrc o reinicia la terminal."
 
-# ⚠️ No eliminar dotfiles automáticamente, solo advertir
+# Nota sobre dotfiles
 echo "⚠️ NOTA: Tus dotfiles NO se eliminaron. Puedes hacerlo manualmente si lo deseas:"
 echo "    rm -rf ~/dotfiles"
 
+# Reinicio opcional
+read -p "🔁 ¿Deseas reiniciar ahora para aplicar los cambios? [s/N] " RESP
+if [[ "$RESP" =~ ^[Ss]$ ]]; then
+    echo "🔄 Reiniciando..."
+    sudo reboot
+else
+    echo "🛑 Reinicio cancelado. Puedes reiniciar manualmente más tarde."
+fi
+
 echo "✅ Configuración completada con éxito."
-echo "🔁 Reinicia tu sistema para aplicar todos los cambios."
