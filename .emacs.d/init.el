@@ -1,9 +1,9 @@
 ;;; Core Emacs Setup
 (package-initialize) ; Initializes the Emacs package system.
 
-(setq custom-file "~/.emacs.d/.emacs.custom.el") ; Sets the file where Emacs saves custom settings from `customize` interface.
+(setq custom-file "~/.emacs.d/emacs.custom.el") ; Sets the file where Emacs saves custom settings from `customize` interface.
 
-(load-file "~/.emacs.d/.emacs.rc/rc.el") ; Loads a custom initialization file, likely containing `rc/require` and other personal functions.
+(load-file "~/.emacs.d/emacs.rc/rc.el") ; Loads a custom initialization file, likely containing `rc/require` and other personal functions.
 
 (add-to-list 'default-frame-alist `(font . "Iosevka Nerd Font-22")) ; Sets the default font and size for Emacs frames.
 
@@ -27,7 +27,7 @@
 (require 'ido-completing-read+) ; Ensures `ido-completing-read+` is loaded.
 
 ;;; Local Modes
-(add-to-list 'load-path "~/.emacs.d/.emacs.local/") ; Adds a local directory to Emacs's load path for custom modes.
+(add-to-list 'load-path "~/.emacs.d/emacs.local/") ; Adds a local directory to Emacs's load path for custom modes.
 (require 'simpc-mode) ; Loads the `simpc-mode` definition.
 (add-to-list 'auto-mode-alist '("\\.[hc]\\(pp\\)?\\'" . simpc-mode)) ; Associates .c, .h, .cpp, .hpp files with `simpc-mode`.
 (require 'fasm-mode) ; Loads the `fasm-mode` definition.
@@ -132,7 +132,7 @@
 (require 'yasnippet) ; Ensures `yasnippet` is loaded (standard require).
 
 (setq yas/triggers-in-field nil) ; Prevents snippet expansion when inside a snippet field.
-(setq yas-snippet-dirs '("~/.emacs.d/.emacs.snippets/")) ; Sets the directory where Yasnippet looks for custom snippets.
+(setq yas-snippet-dirs '("~/.emacs.d/emacs.snippets/")) ; Sets the directory where Yasnippet looks for custom snippets.
 
 (yas-global-mode 1) ; Activates Yasnippet globally for all buffers.
 
