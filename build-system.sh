@@ -37,6 +37,9 @@ sudo xbps-install -Sy \
     neofetch \
     fontconfig
 
+# Instalar Rust pogramming languege
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
 # Configurar terminal Kitty
 echo "🖥️ Configurando Kitty..."
 mkdir -p ~/.config/kitty/
