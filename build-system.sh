@@ -35,10 +35,12 @@ sudo xbps-install -Sy \
     git \
     htop curl wget \
     neofetch \
-    fontconfig
+    fontconfig \
+    pandoc fd
 
 # Instalar Rust pogramming languege
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+cargo install cargo-makedocs
 
 # Configurar terminal Kitty
 echo "🖥️ Configurando Kitty..."
