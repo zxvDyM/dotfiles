@@ -36,7 +36,8 @@ sudo xbps-install -Sy \
     htop curl wget \
     neofetch \
     fontconfig \
-    pandoc fd
+    pandoc fd \
+    i3 i3status dmenu
 
 # Instalar Rust pogramming languege
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
