@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-echo "🛠️  Iniciando la configuración del sistema Void Linux..."
+echo "🛠️ Iniciando configuración del sistema Debian..."
 
 # Verificar acceso a dotfiles
 if [ ! -d ~/dotfiles ]; then
@@ -9,127 +9,120 @@ if [ ! -d ~/dotfiles ]; then
     exit 1
 fi
 
-# Advertencia sobre uso de sudo
-echo "⚠️  Este script requiere privilegios de sudo. Asegúrate de tener acceso."
+# Verificar privilegios de sudo
+if ! sudo -v; then
+    echo "❌ Necesitas acceso a sudo. Aborta la configuración."
+    exit 1
+fi
 
-# Actualizar el sistema
+# Actualizar sistema
 echo "📦 Actualizando el sistema..."
-sudo xbps-install -Syu
+sudo apt update && sudo apt upgrade -y
 
-# Copiar configuración de Emacs (haciendo backup si ya existe)
+# Copiar configuración de Emacs
 echo "📝 Copiando configuración de Emacs..."
 if [ -d ~/.emacs.d ]; then
-    echo "📁 Se detectó una configuración previa de Emacs. Haciendo backup..."
+    echo "📁 Backup de Emacs anterior..."
     mv ~/.emacs.d ~/.emacs.d.backup.$(date +%s)
 fi
 cp -r ~/dotfiles/.emacs.d/ ~/.emacs.d
 
-# Instalar paquetes del sistema
-echo "📦 Instalando paquetes del sistema..."
-sudo xbps-install -Sy \
+# Instalar paquetes necesarios
+echo "📦 Instalando paquetes esenciales..."
+sudo apt install -y \
+    emacs \
+    clang gcc gdb nasm \
+    unzip curl wget git \
+    zsh kitty \
     okular \
-    emacs-gtk3 \
-    clang gcc gdb nasm fasm \
-    unzip \
-    kitty zsh \
-    git \
-    htop curl wget \
-    neofetch \
+    htop neofetch \
     fontconfig \
-    pandoc fd \
-    i3 i3status dmenu
+    pandoc fd-find \
+    i3 i3status dmenu \
+    pulseaudio playerctl \
+    brightnessctl acpi \
+    xbacklight
 
-# Instalar Rust pogramming languege
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-cargo install cargo-makedocs
-
-# Configurar terminal Kitty
+# Configurar Kitty
 echo "🖥️ Configurando Kitty..."
 mkdir -p ~/.config/kitty/
 cp ~/dotfiles/kitty.conf ~/.config/kitty/kitty.conf
 
 # Configurar GDB
-echo "⚙️  Configurando GDB..."
+echo "⚙️ Configurando GDB..."
 cat > ~/.gdbinit <<EOF
 set breakpoint pending on
 set disassembly-flavor intel
 EOF
 
 # Instalar Iosevka Nerd Font si no está
-echo "🔤 Verificando si Iosevka Nerd Font ya está instalada..."
+echo "🔤 Verificando Iosevka Nerd Font..."
 if fc-list | grep -iq "Iosevka Nerd Font"; then
-    echo "✅ Iosevka Nerd Font ya está instalada. Saltando instalación..."
+    echo "✅ Iosevka Nerd Font ya está instalada."
 else
     echo "📥 Instalando Iosevka Nerd Font..."
-
     FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip"
     FONT_DEST="$HOME/.local/share/fonts"
-
     mkdir -p "$FONT_DEST"
 
-    pushd /tmp > /dev/null
+    tmpdir=$(mktemp -d)
+    pushd "$tmpdir" > /dev/null
     curl -LO "$FONT_URL"
-
     unzip -q Iosevka.zip -d Iosevka
     cp -v Iosevka/*.ttf "$FONT_DEST/"
-
-    rm -rf Iosevka.zip Iosevka
     popd > /dev/null
+    rm -rf "$tmpdir"
 
     echo "📦 Recargando caché de fuentes..."
     fc-cache -fv
-
-    echo "✅ Iosevka Nerd Font instalada correctamente."
+    echo "✅ Iosevka Nerd Font instalada."
 fi
 
-# Establecer Zsh como shell predeterminada
-echo "🔁 Estableciendo Zsh como shell predeterminada..."
-ZSH_PATH=$(command -v zsh)
-if grep -q "$ZSH_PATH" /etc/shells; then
-    chsh -s "$ZSH_PATH"
-    echo "✅ Shell cambiado a Zsh."
-else
-    echo "⚠️  Zsh no está listado en /etc/shells. Agrega '$ZSH_PATH' manualmente si es necesario."
-fi
-
-# Instalar Oh My Zsh si no está instalado
+# Instalar Oh My Zsh y Powerlevel10k
+echo "💡 Instalando Oh My Zsh y Powerlevel10k..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "✨ Instalando Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || \
-    sh -c "$(wget -O- https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    RUNZSH=no KEEP_ZSHRC=yes CHSH=no \
+    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 else
-    echo "✅ Oh My Zsh ya está instalado. Saltando instalación."
+    echo "✅ Oh My Zsh ya instalado."
 fi
 
-# Instalar tema Powerlevel10k si no está presente
 P10K_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
 if [ ! -d "$P10K_DIR" ]; then
-    echo "🎨 Instalando tema Powerlevel10k..."
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
 else
-    echo "✅ Powerlevel10k ya está instalado. Saltando clonación."
+    echo "✅ Powerlevel10k ya instalado."
 fi
 
-# Instalar plugins útiles
 ZSH_PLUGIN_DIR="$HOME/.oh-my-zsh/custom/plugins"
 mkdir -p "$ZSH_PLUGIN_DIR"
 
 if [ ! -d "$ZSH_PLUGIN_DIR/zsh-autosuggestions" ]; then
-    echo "🔌 Instalando zsh-autosuggestions..."
     git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_PLUGIN_DIR/zsh-autosuggestions"
 fi
 
 if [ ! -d "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting" ]; then
-    echo "🔌 Instalando zsh-syntax-highlighting..."
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting"
 fi
 
-# Nota sobre Zsh
-echo "ℹ️ Si no ves los cambios de Zsh, ejecuta: source ~/.zshrc o reinicia la terminal."
+# Instalar Rust (al final para evitar reinicio del entorno de shell)
+echo "🦀 Instalando Rust..."
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+cargo install cargo-makedocs
+
+# Cambiar shell al final
+echo "🔁 Estableciendo Zsh como shell predeterminada..."
+ZSH_PATH=$(command -v zsh)
+if grep -q "$ZSH_PATH" /etc/shells; then
+    chsh -s "$ZSH_PATH"
+    echo "✅ Shell cambiado a Zsh. Reinicia sesión para aplicar."
+else
+    echo "⚠️ Zsh no en /etc/shells. Agrega '$ZSH_PATH' manualmente si es necesario."
+fi
 
 # Nota sobre dotfiles
-echo "⚠️ NOTA: Tus dotfiles NO se eliminaron. Puedes hacerlo manualmente si lo deseas:"
-echo "    rm -rf ~/dotfiles"
+echo "⚠️ NOTA: Los dotfiles siguen en ~/dotfiles. Puedes eliminarlos manualmente si lo deseas."
 
 # Reinicio opcional
 read -p "🔁 ¿Deseas reiniciar ahora para aplicar los cambios? [s/N] " RESP
@@ -137,7 +130,7 @@ if [[ "$RESP" =~ ^[Ss]$ ]]; then
     echo "🔄 Reiniciando..."
     sudo reboot
 else
-    echo "🛑 Reinicio cancelado. Puedes reiniciar manualmente más tarde."
+    echo "🛑 Reinicio cancelado. Puedes reiniciar manualmente luego."
 fi
 
-echo "✅ Configuración completada con éxito."
+echo "✅ Configuración finalizada correctamente en Debian."
