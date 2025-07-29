@@ -1,3 +1,4 @@
+
 #!/bin/bash
 set -eu
 
@@ -5,13 +6,13 @@ echo "🛠️ Iniciando configuración del sistema Debian..."
 
 # Verificar acceso a dotfiles
 if [ ! -d ~/dotfiles ]; then
-    echo "❌ Directorio ~/dotfiles no encontrado. Aborta la configuración."
+    echo "❌ Directorio ~/dotfiles no encontrado. Abortando configuración."
     exit 1
 fi
 
 # Verificar privilegios de sudo
 if ! sudo -v; then
-    echo "❌ Necesitas acceso a sudo. Aborta la configuración."
+    echo "❌ Necesitas acceso a sudo. Abortando configuración."
     exit 1
 fi
 
@@ -28,7 +29,7 @@ fi
 cp -r ~/dotfiles/.emacs.d/ ~/.emacs.d
 
 # Instalar paquetes necesarios
-echo "📦 Instalando paquetes esenciales..."
+echo "📦 Instalando paquetes esenciales y entorno i3..."
 sudo apt install -y \
     emacs \
     clang gcc gdb nasm \
@@ -41,7 +42,9 @@ sudo apt install -y \
     i3 i3status dmenu \
     pulseaudio playerctl \
     brightnessctl acpi \
-    xbacklight
+    xbacklight \
+    feh lxappearance picom \
+    lightdm lightdm-gtk-greeter
 
 # Configurar Kitty
 echo "🖥️ Configurando Kitty..."
@@ -84,14 +87,14 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
     RUNZSH=no KEEP_ZSHRC=yes CHSH=no \
     sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 else
-    echo "✅ Oh My Zsh ya instalado."
+    echo "✅ Oh My Zsh ya está instalado."
 fi
 
 P10K_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
 if [ ! -d "$P10K_DIR" ]; then
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
 else
-    echo "✅ Powerlevel10k ya instalado."
+    echo "✅ Powerlevel10k ya está instalado."
 fi
 
 ZSH_PLUGIN_DIR="$HOME/.oh-my-zsh/custom/plugins"
@@ -102,23 +105,23 @@ if [ ! -d "$ZSH_PLUGIN_DIR/zsh-autosuggestions" ]; then
 fi
 
 if [ ! -d "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting" ]; then
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting"
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting"
 fi
 
-# Instalar Rust (al final para evitar reinicio del entorno de shell)
+# Instalar Rust
 echo "🦀 Instalando Rust..."
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source "$HOME/.cargo/env"
 cargo install cargo-makedocs
 
-# Cambiar shell al final
+# Cambiar shell a Zsh
 echo "🔁 Estableciendo Zsh como shell predeterminada..."
 ZSH_PATH=$(command -v zsh)
 if grep -q "$ZSH_PATH" /etc/shells; then
     chsh -s "$ZSH_PATH"
-    echo "✅ Shell cambiado a Zsh. Reinicia sesión para aplicar."
+    echo "✅ Shell cambiada a Zsh. Reinicia sesión para aplicar."
 else
-    echo "⚠️ Zsh no en /etc/shells. Agrega '$ZSH_PATH' manualmente si es necesario."
+    echo "⚠️ Zsh no está en /etc/shells. Agrega '$ZSH_PATH' manualmente si es necesario."
 fi
 
 # Nota sobre dotfiles
