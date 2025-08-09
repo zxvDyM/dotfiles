@@ -18,7 +18,10 @@
 (menu-bar-mode 0) ; Disables the graphical menu bar.
 (tool-bar-mode 0) ; Disables the graphical tool bar.
 (scroll-bar-mode 0) ; Disables the graphical scroll bar.
-(global-display-line-numbers-mode) ; Globally enables line numbers in all buffers.
+(global-display-line-numbers-mode 1) ; Globally enables line numbers in all buffers.
+(column-number-mode 1)
+(setq inhibit-startup-message t)
+(setq inhibit-startup-screen t)
 
 ;;; Smex (Enhanced M-x)
 (rc/require 'smex 'ido-completing-read+) ; Loads Smex and its Ido completion dependency.
@@ -45,6 +48,14 @@
 (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this) ; Adds all occurrences to multiple cursors.
 (global-set-key (kbd "C-\"") 'mc/skip-to-next-like-this) ; Skips to next occurrence without adding cursor.
 (global-set-key (kbd "C-:") 'mc/skip-to-previous-like-this) ; Skips to previous occurrence without adding cursor.
+
+;; Personal Key Bindings
+(global-set-key (kbd "s-i") 'copy-from-above-command) ;; Copy from above command.
+
+;; Move text
+(rc/require 'move-text)
+(global-set-key (kbd "s-u") 'move-text-up)
+(global-set-key (kbd "s-p") 'move-text-down)
 
 ;;; Auto-Loaded Packages (No Specific Configuration Shown)
 (rc/require ; Loads a list of packages that typically work out-of-the-box or have minimal custom setup.
